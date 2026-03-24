@@ -2,137 +2,143 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lumiplan Pro Max</title>
+<title>Lumiplan Real</title>
 
 <style>
 body {
-  margin: 0;
-  background: #fff;
-  font-family: Arial;
-  overflow: hidden;
+  margin:0;
+  background:#fff;
+  font-family:Arial;
+  overflow:hidden;
 }
 
 /* Heure */
 #time {
-  position: absolute;
-  top: 10px;
-  right: 20px;
-  font-size: 22px;
-  font-weight: bold;
+  position:absolute;
+  top:10px;
+  right:20px;
+  font-size:22px;
+  font-weight:bold;
 }
 
 /* Boutons lignes */
 #lineButtons {
-  position: absolute;
-  top: 10px;
-  left: 10px;
+  position:absolute;
+  top:10px;
+  left:10px;
 }
-
 #lineButtons button {
-  background: #d32f2f;
-  color: white;
-  border: none;
-  margin: 3px;
-  padding: 6px 12px;
+  background:#d32f2f;
+  color:white;
+  border:none;
+  margin:3px;
+  padding:6px 12px;
 }
 
-/* Ligne */
-#lineDisplay {
-  position: absolute;
-  top: 120px;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 20px;
+/* Ligne principale */
+#lineContainer {
+  position:absolute;
+  top:140px;
+  width:100%;
+  text-align:center;
 }
 
 /* Ligne rouge */
-#lineDisplay::before {
-  content: "";
-  position: absolute;
-  top: 9px;
-  left: 20px;
-  right: 20px;
-  height: 4px;
-  background: #d32f2f;
-  z-index: 0;
+#lineBar {
+  height:6px;
+  background:#d32f2f;
+  margin:0 40px;
+  position:relative;
+}
+
+/* Stops */
+#stops {
+  position:relative;
+  display:flex;
+  justify-content:space-between;
+  margin:0 40px;
+  margin-top:-10px;
 }
 
 .stop {
-  text-align: center;
-  position: relative;
-  z-index: 1;
+  text-align:center;
 }
 
 /* Point */
 .dot {
-  width: 18px;
-  height: 18px;
-  background: black;
-  border-radius: 50%;
-  margin: auto;
+  width:18px;
+  height:18px;
+  background:black;
+  border-radius:50%;
+  margin:auto;
 }
 
-/* Nom arrêt */
-.stopName {
-  margin-top: 10px;
-  font-size: 14px;
-  white-space: nowrap;
-}
-
-/* Arrêt actif */
+/* Actif */
 .active .dot {
-  background: #d32f2f;
+  background:#d32f2f;
+}
+
+/* Nom */
+.stopName {
+  margin-top:8px;
+  font-size:14px;
+  white-space:nowrap;
 }
 
 /* Défilement */
-#bottomText {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 80px;
-  overflow: hidden;
-  border-top: 4px solid #d32f2f;
+#bottom {
+  position:absolute;
+  bottom:0;
+  width:100%;
+  height:80px;
+  overflow:hidden;
+  border-top:4px solid #d32f2f;
 }
 
-#scrollWrapper {
-  display: flex;
-  white-space: nowrap;
-  font-size: 50px;
-  font-weight: bold;
-  color: #d32f2f;
+#scroll {
+  display:flex;
+  white-space:nowrap;
+  font-size:50px;
+  font-weight:bold;
+  color:#d32f2f;
 }
 
-#scrollWrapper span {
-  padding-right: 100px;
+#scroll span {
+  padding-right:100px;
 }
 
-/* Bouton */
+/* Paramètres */
 #settingsBtn {
-  position: absolute;
-  bottom: 90px;
-  left: 20px;
-  padding: 10px;
-  background: #d32f2f;
-  color: white;
-  border: none;
+  position:absolute;
+  bottom:90px;
+  left:20px;
+  background:#d32f2f;
+  color:white;
+  border:none;
+  padding:10px;
 }
 
 /* Menu */
 #settings {
-  display: none;
-  position: absolute;
-  background: black;
-  color: white;
-  width: 100%;
-  height: 100%;
-  padding: 20px;
+  display:none;
+  position:absolute;
+  width:100%;
+  height:100%;
+  background:black;
+  color:white;
+  padding:20px;
+  overflow:auto;
 }
 
-input, select {
-  padding: 5px;
-  margin: 5px;
+input,select {
+  padding:6px;
+  margin:5px;
+}
+
+.stopItem {
+  display:flex;
+  justify-content:space-between;
+  margin:5px 0;
 }
 </style>
 </head>
@@ -141,198 +147,209 @@ input, select {
 
 <div id="time"></div>
 <div id="lineButtons"></div>
-<div id="lineDisplay"></div>
 
-<div id="bottomText">
-  <div id="scrollWrapper">
-    <span id="scrollText1"></span>
-    <span id="scrollText2"></span>
+<div id="lineContainer">
+  <div id="lineBar"></div>
+  <div id="stops"></div>
+</div>
+
+<div id="bottom">
+  <div id="scroll">
+    <span id="text1"></span>
+    <span id="text2"></span>
   </div>
 </div>
 
 <button id="settingsBtn">⚙️</button>
 
 <div id="settings">
-  <h2>Gestion des lignes</h2>
+<h2>Paramètres</h2>
 
-  <select id="lineSelect"></select><br>
+<select id="lineSelect"></select><br>
 
-  <input id="lineName" placeholder="Nom ligne"><br>
-  <input id="stopName" placeholder="Nom arrêt"><br>
+<input id="lineName" placeholder="Nom ligne"><br>
+<button onclick="createLine()">Créer ligne</button>
+<button onclick="deleteLine()">Supprimer ligne</button>
 
-  <button onclick="createLine()">➕ Nouvelle ligne</button>
-  <button onclick="addStop()">📍 Ajouter arrêt</button>
-  <button onclick="deleteLine()">🗑️ Supprimer ligne</button>
+<hr>
 
-  <button onclick="closeSettings()">❌ Fermer</button>
+<input id="stopName" placeholder="Nom arrêt">
+<button onclick="addStop()">Ajouter arrêt (GPS)</button>
+
+<div id="stopList"></div>
+
+<button onclick="closeSettings()">Fermer</button>
 </div>
 
 <script>
-let lines = JSON.parse(localStorage.getItem("lines")) || [];
-let currentLine = null;
-let selectedLineIndex = null;
-let currentIndex = 0;
-let userPos = null;
+let lines=JSON.parse(localStorage.getItem("lines"))||[];
+let currentLine=null;
+let selectedLine=null;
+let currentIndex=0;
+let userPos=null;
 
 /* Heure */
 setInterval(()=>{
-  const now = new Date();
-  document.getElementById("time").innerText =
-    now.getHours().toString().padStart(2,"0") + ":" +
-    now.getMinutes().toString().padStart(2,"0");
+  const n=new Date();
+  time.innerText=n.getHours().toString().padStart(2,"0")+":"+n.getMinutes().toString().padStart(2,"0");
 },1000);
 
 /* GPS */
-navigator.geolocation.watchPosition((pos)=>{
-  userPos = pos.coords;
+navigator.geolocation.watchPosition(p=>{
+  userPos=p.coords;
   checkStop();
 });
 
 /* Boutons lignes */
 function loadButtons(){
-  const div = document.getElementById("lineButtons");
-  div.innerHTML="";
+  lineButtons.innerHTML="";
   lines.forEach((l,i)=>{
-    const btn=document.createElement("button");
-    btn.innerText=l.name;
-    btn.onclick=()=>selectLine(i);
-    div.appendChild(btn);
+    let b=document.createElement("button");
+    b.innerText=l.name;
+    b.onclick=()=>selectLine(i);
+    lineButtons.appendChild(b);
   });
 }
 loadButtons();
 
 /* Select */
-function loadLineSelect(){
-  const select = document.getElementById("lineSelect");
-  select.innerHTML="";
+function loadSelect(){
+  lineSelect.innerHTML="";
   lines.forEach((l,i)=>{
-    const opt=document.createElement("option");
-    opt.value=i;
-    opt.innerText=l.name;
-    select.appendChild(opt);
+    let o=document.createElement("option");
+    o.value=i;
+    o.innerText=l.name;
+    lineSelect.appendChild(o);
   });
-
-  select.onchange=()=>{
-    selectedLineIndex=parseInt(select.value);
+  lineSelect.onchange=()=>{
+    selectedLine=parseInt(lineSelect.value);
+    showStops();
   }
 }
 
 /* Créer ligne */
 function createLine(){
-  const name=document.getElementById("lineName").value;
-  if(!name) return;
+  let name=lineName.value;
+  if(!name)return;
   lines.push({name,stops:[]});
-  localStorage.setItem("lines",JSON.stringify(lines));
-  loadButtons();
-  loadLineSelect();
-}
-
-/* Ajouter arrêt */
-function addStop(){
-  if(selectedLineIndex===null) return alert("Choisis ligne");
-  if(!userPos) return alert("Active GPS");
-
-  const name=document.getElementById("stopName").value;
-
-  lines[selectedLineIndex].stops.push({
-    name:name,
-    lat:userPos.latitude,
-    lon:userPos.longitude
-  });
-
-  localStorage.setItem("lines",JSON.stringify(lines));
-  alert("Arrêt ajouté");
+  save();
 }
 
 /* Supprimer ligne */
 function deleteLine(){
-  if(selectedLineIndex===null) return;
-  lines.splice(selectedLineIndex,1);
-  localStorage.setItem("lines",JSON.stringify(lines));
-  currentLine=null;
-  loadButtons();
-  loadLineSelect();
+  if(selectedLine==null)return;
+  lines.splice(selectedLine,1);
+  save();
 }
 
-/* Sélection */
+/* Ajouter arrêt */
+function addStop(){
+  if(selectedLine==null)return alert("Choisis ligne");
+  if(!userPos)return alert("Active GPS");
+
+  let name=stopName.value;
+
+  lines[selectedLine].stops.push({
+    name,
+    lat:userPos.latitude,
+    lon:userPos.longitude
+  });
+
+  save();
+}
+
+/* Supprimer arrêt */
+function removeStop(i){
+  lines[selectedLine].stops.splice(i,1);
+  save();
+}
+
+/* Afficher liste arrêts */
+function showStops(){
+  stopList.innerHTML="";
+  if(selectedLine==null)return;
+
+  lines[selectedLine].stops.forEach((s,i)=>{
+    let div=document.createElement("div");
+    div.className="stopItem";
+    div.innerHTML=s.name+" <button onclick='removeStop("+i+")'>X</button>";
+    stopList.appendChild(div);
+  });
+}
+
+/* Save */
+function save(){
+  localStorage.setItem("lines",JSON.stringify(lines));
+  loadButtons();
+  loadSelect();
+  showStops();
+}
+
+/* Sélection ligne */
 function selectLine(i){
   currentLine=lines[i];
   currentIndex=0;
-  displayLine();
+  draw();
 }
 
-/* Affichage */
-function displayLine(){
-  const div=document.getElementById("lineDisplay");
-  div.innerHTML="";
+/* Dessin */
+function draw(){
+  stops.innerHTML="";
   currentLine.stops.forEach((s,i)=>{
-    const el=document.createElement("div");
-    el.className="stop";
-    if(i===currentIndex) el.classList.add("active");
-
-    el.innerHTML=`<div class="dot"></div><div class="stopName">${s.name}</div>`;
-    div.appendChild(el);
+    let d=document.createElement("div");
+    d.className="stop";
+    if(i==currentIndex)d.classList.add("active");
+    d.innerHTML="<div class='dot'></div><div class='stopName'>"+s.name+"</div>";
+    stops.appendChild(d);
   });
 }
 
 /* Distance */
-function distance(a,b){
+function dist(a,b){
   return Math.sqrt((a.lat-b.latitude)**2+(a.lon-b.longitude)**2);
 }
 
-/* Défilement fluide */
-let scrollX=0;
-let speed=1;
-
-function startScroll(text){
-  const s1=document.getElementById("scrollText1");
-  const s2=document.getElementById("scrollText2");
-
-  s1.innerText=text;
-  s2.innerText=text;
-
-  function animate(){
-    scrollX-=speed;
-    if(Math.abs(scrollX)>s1.offsetWidth) scrollX=0;
-
-    s1.style.transform=`translateX(${scrollX}px)`;
-    s2.style.transform=`translateX(${scrollX+s1.offsetWidth}px)`;
-
-    requestAnimationFrame(animate);
+/* Scroll fluide */
+let x=0;
+function scrollText(t){
+  text1.innerText=t;
+  text2.innerText=t;
+  function anim(){
+    x-=1;
+    if(Math.abs(x)>text1.offsetWidth)x=0;
+    text1.style.transform=`translateX(${x}px)`;
+    text2.style.transform=`translateX(${x+text1.offsetWidth}px)`;
+    requestAnimationFrame(anim);
   }
-
-  animate();
+  anim();
 }
 
-/* Vérification */
+/* GPS logique */
 function checkStop(){
-  if(!currentLine||!userPos) return;
+  if(!currentLine||!userPos)return;
 
-  const stop=currentLine.stops[currentIndex];
-  const d=distance(stop,userPos);
+  let s=currentLine.stops[currentIndex];
+  let d=dist(s,userPos);
 
   if(d<0.0005){
-    startScroll("ARRÊT : "+stop.name.toUpperCase());
+    scrollText("ARRET : "+s.name.toUpperCase());
   }else{
-    const next=currentLine.stops[currentIndex+1];
+    let next=currentLine.stops[currentIndex+1];
     if(next){
-      startScroll("PROCHAIN ARRÊT : "+next.name.toUpperCase());
-      if(d>0.001 && currentIndex<currentLine.stops.length-1){
-        currentIndex++;
-        displayLine();
-      }
+      scrollText("PROCHAIN ARRET : "+next.name.toUpperCase());
+      if(d>0.001) currentIndex++;
+      draw();
     }
   }
 }
 
 /* UI */
-document.getElementById("settingsBtn").onclick=()=>{
-  document.getElementById("settings").style.display="block";
-  loadLineSelect();
+settingsBtn.onclick=()=>{
+  settings.style.display="block";
+  loadSelect();
 }
-
 function closeSettings(){
-  document.getElementById("settings").style.display="none";
+  settings.style.display="none";
 }
 </script>
 
