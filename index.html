@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lumiplan GPS</title>
+<title>Lumiplan Pro Max</title>
 
 <style>
 body {
@@ -42,15 +42,30 @@ body {
   top: 120px;
   width: 100%;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+/* Ligne rouge */
+#lineDisplay::before {
+  content: "";
+  position: absolute;
+  top: 9px;
+  left: 20px;
+  right: 20px;
+  height: 4px;
+  background: #d32f2f;
+  z-index: 0;
 }
 
 .stop {
   text-align: center;
-  flex: 1;
   position: relative;
+  z-index: 1;
 }
 
+/* Point */
 .dot {
   width: 18px;
   height: 18px;
@@ -59,19 +74,16 @@ body {
   margin: auto;
 }
 
+/* Nom arrêt */
 .stopName {
+  margin-top: 10px;
   font-size: 14px;
-  transform: rotate(-45deg);
+  white-space: nowrap;
 }
 
-/* Ligne rouge */
-.arrowLine {
-  position: absolute;
-  top: 9px;
-  width: 100%;
-  height: 4px;
+/* Arrêt actif */
+.active .dot {
   background: #d32f2f;
-  z-index: -1;
 }
 
 /* Défilement */
@@ -118,7 +130,7 @@ body {
   padding: 20px;
 }
 
-input {
+input, select {
   padding: 5px;
   margin: 5px;
 }
@@ -141,20 +153,24 @@ input {
 <button id="settingsBtn">⚙️</button>
 
 <div id="settings">
-  <h2>Créer ligne</h2>
+  <h2>Gestion des lignes</h2>
+
+  <select id="lineSelect"></select><br>
+
   <input id="lineName" placeholder="Nom ligne"><br>
   <input id="stopName" placeholder="Nom arrêt"><br>
 
-  <button onclick="addStop()">📍 Ajouter arrêt (GPS)</button><br>
-  <button onclick="saveLine()">💾 Sauvegarder</button>
+  <button onclick="createLine()">➕ Nouvelle ligne</button>
+  <button onclick="addStop()">📍 Ajouter arrêt</button>
   <button onclick="deleteLine()">🗑️ Supprimer ligne</button>
+
   <button onclick="closeSettings()">❌ Fermer</button>
 </div>
 
 <script>
 let lines = JSON.parse(localStorage.getItem("lines")) || [];
 let currentLine = null;
-let stopsTemp = [];
+let selectedLineIndex = null;
 let currentIndex = 0;
 let userPos = null;
 
@@ -166,7 +182,7 @@ setInterval(()=>{
     now.getMinutes().toString().padStart(2,"0");
 },1000);
 
-/* GPS iPhone */
+/* GPS */
 navigator.geolocation.watchPosition((pos)=>{
   userPos = pos.coords;
   checkStop();
@@ -185,39 +201,57 @@ function loadButtons(){
 }
 loadButtons();
 
-/* Ajouter arrêt avec GPS */
+/* Select */
+function loadLineSelect(){
+  const select = document.getElementById("lineSelect");
+  select.innerHTML="";
+  lines.forEach((l,i)=>{
+    const opt=document.createElement("option");
+    opt.value=i;
+    opt.innerText=l.name;
+    select.appendChild(opt);
+  });
+
+  select.onchange=()=>{
+    selectedLineIndex=parseInt(select.value);
+  }
+}
+
+/* Créer ligne */
+function createLine(){
+  const name=document.getElementById("lineName").value;
+  if(!name) return;
+  lines.push({name,stops:[]});
+  localStorage.setItem("lines",JSON.stringify(lines));
+  loadButtons();
+  loadLineSelect();
+}
+
+/* Ajouter arrêt */
 function addStop(){
-  if(!userPos) return alert("Active le GPS !");
+  if(selectedLineIndex===null) return alert("Choisis ligne");
+  if(!userPos) return alert("Active GPS");
+
   const name=document.getElementById("stopName").value;
 
-  stopsTemp.push({
+  lines[selectedLineIndex].stops.push({
     name:name,
     lat:userPos.latitude,
     lon:userPos.longitude
   });
 
-  alert("Arrêt ajouté 📍");
-}
-
-/* Sauvegarde */
-function saveLine(){
-  const name=document.getElementById("lineName").value;
-  if(!name || stopsTemp.length===0) return alert("Remplis tout");
-
-  lines.push({name,stops:stopsTemp});
   localStorage.setItem("lines",JSON.stringify(lines));
-
-  stopsTemp=[];
-  loadButtons();
+  alert("Arrêt ajouté");
 }
 
-/* Supprimer */
+/* Supprimer ligne */
 function deleteLine(){
-  if(!currentLine) return;
-  lines=lines.filter(l=>l!==currentLine);
+  if(selectedLineIndex===null) return;
+  lines.splice(selectedLineIndex,1);
   localStorage.setItem("lines",JSON.stringify(lines));
   currentLine=null;
   loadButtons();
+  loadLineSelect();
 }
 
 /* Sélection */
@@ -234,14 +268,10 @@ function displayLine(){
   currentLine.stops.forEach((s,i)=>{
     const el=document.createElement("div");
     el.className="stop";
+    if(i===currentIndex) el.classList.add("active");
+
     el.innerHTML=`<div class="dot"></div><div class="stopName">${s.name}</div>`;
     div.appendChild(el);
-
-    if(i<currentLine.stops.length-1){
-      const line=document.createElement("div");
-      line.className="arrowLine";
-      el.appendChild(line);
-    }
   });
 }
 
@@ -263,10 +293,7 @@ function startScroll(text){
 
   function animate(){
     scrollX-=speed;
-
-    if(Math.abs(scrollX)>s1.offsetWidth){
-      scrollX=0;
-    }
+    if(Math.abs(scrollX)>s1.offsetWidth) scrollX=0;
 
     s1.style.transform=`translateX(${scrollX}px)`;
     s2.style.transform=`translateX(${scrollX+s1.offsetWidth}px)`;
@@ -277,7 +304,7 @@ function startScroll(text){
   animate();
 }
 
-/* Vérification arrêt */
+/* Vérification */
 function checkStop(){
   if(!currentLine||!userPos) return;
 
@@ -290,7 +317,10 @@ function checkStop(){
     const next=currentLine.stops[currentIndex+1];
     if(next){
       startScroll("PROCHAIN ARRÊT : "+next.name.toUpperCase());
-      if(d>0.001) currentIndex++;
+      if(d>0.001 && currentIndex<currentLine.stops.length-1){
+        currentIndex++;
+        displayLine();
+      }
     }
   }
 }
@@ -298,7 +328,9 @@ function checkStop(){
 /* UI */
 document.getElementById("settingsBtn").onclick=()=>{
   document.getElementById("settings").style.display="block";
+  loadLineSelect();
 }
+
 function closeSettings(){
   document.getElementById("settings").style.display="none";
 }
